@@ -8,7 +8,7 @@ SELECT top 10 * FROM CreditCardIndia;
 /*
 Result :
 
-index	city	date	card_type	xp_type	gender	amount
+transaction_id	city	transaction_date	card_type	xp_type	gender	amount
 0	Delhi, India	2014-10-29 00:00:00.000	Gold	Bills	F	82475
 1	Greater Mumbai, India	2014-08-22 00:00:00.000	Platinum	Bills	F	32555
 2	Bengaluru, India	2014-08-27 00:00:00.000	Silver	Bills	F	101738
@@ -104,10 +104,10 @@ Kolkata, India	115466943	2.83366048204789
 --For each card type Let's find: 1. Highest spend month and 2. Amount spent in that month 
 
 WITH spend_month_data AS (
-SELECT card_type,datepart(YEAR,date) AS spend_year,datepart(MONTH,date) AS spend_month,
+SELECT card_type,datepart(YEAR,transaction_date) AS spend_year,datepart(MONTH,transaction_date) AS spend_month,
 SUM(amount) AS spend_amount
 FROM CreditCardIndia
-GROUP BY card_type,datepart(YEAR,date),datepart(MONTH,date)
+GROUP BY card_type,datepart(YEAR,transaction_date),datepart(MONTH,transaction_date)
 ),
 Rank_Card_Type AS (
 SELECT *,
@@ -192,6 +192,7 @@ Dhamtari, India	0.00332987647004875
 
 --Find the highest_expense_type and lowest_expense_type for a city.
 
+
 WITH city_exp AS (
 SELECT city,
 xp_type,
@@ -210,7 +211,7 @@ SELECT city,
 min(CASE WHEN rn_asc=1 THEN xp_type END) AS lowest_exp_type
 ,min(CASE WHEN rn_desc=1 THEN xp_type END) AS highest_exp_type
 FROM Exp_rank
-GROUP BY city
+GROUP BY city;
 
 /*
 Sample Result:
