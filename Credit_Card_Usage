@@ -130,5 +130,99 @@ Silver	2015	3	59723549	1
 */
 
 
+--Lets Find transaction details for each card type when it reaches a cumulative of 1000000 total spends
+
+WITH rolling_sum AS (
+SELECT *,
+SUM(amount) OVER (partition by card_type ORDER BY transaction_date,transaction_id) AS card_type_agg
+FROM CreditCardIndia
+),
+Cumulative_rank AS (
+SELECT transaction_id,
+transaction_date,
+card_type,
+city,
+xp_type,
+gender,
+amount,
+card_type_agg,
+row_number() OVER (PARTITION BY card_type ORDER BY card_type_agg) AS rn
+FROM rolling_sum
+WHERE card_type_agg>=1000000
+)
+SELECT * 
+FROM Cumulative_rank
+WHERE rn=1
+;
+
+/*
+Result:
+
+transaction_id	transaction_date	card_type	city	xp_type	gender	amount	card_type_agg	rn
+1521	2013-10-04 00:00:00.000	Gold	Delhi, India	Food	M	281924	1272624	1
+190	2013-10-05 00:00:00.000	Platinum	Ahmedabad, India	Bills	F	612572	1537482	1
+72	2013-10-04 00:00:00.000	Signature	Delhi, India	Bills	F	550782	1285819	1
+7564	2013-10-04 00:00:00.000	Silver	Bengaluru, India	Food	F	205179	1115582	1
+
+*/
+
+--Find the city which had the lowest percentage spent on gold card type.
+
+WITH spend_type AS (SELECT city,
+SUM(amount) total_amount,
+SUM(CASE WHEN card_type='Gold' THEN amount ELSE 0 END) AS Gold_amount
+FROM CreditCardIndia
+GROUP BY city)
+SELECT top 1 city,
+(Gold_amount*1.0)/total_amount AS gold_ratio
+FROM spend_type
+WHERE Gold_amount>0
+ORDER BY (Gold_amount*1.0)/total_amount 
+;
 
 
+/*
+Result:
+
+city	gold_ratio
+Dhamtari, India	0.00332987647004875
+
+*/
+
+
+--Find the highest_expense_type and lowest_expense_type for a city.
+
+WITH city_exp AS (
+SELECT city,
+xp_type,
+SUM(amount) AS total_amount
+FROM CreditCardIndia
+GROUP BY city,
+xp_type
+),
+Exp_rank AS (
+SELECT *,
+row_number() over (PARTITION BY city ORDER BY total_amount ASC) AS rn_asc,
+row_number() over (PARTITION BY city ORDER BY total_amount DESC) AS rn_desc
+FROM city_exp
+)
+SELECT city,
+min(CASE WHEN rn_asc=1 THEN xp_type END) AS lowest_exp_type
+,min(CASE WHEN rn_desc=1 THEN xp_type END) AS highest_exp_type
+FROM Exp_rank
+GROUP BY city
+
+/*
+Sample Result:
+
+city	lowest_exp_type	highest_exp_type
+Achalpur, India	Entertainment	Grocery
+Adilabad, India	Food	Bills
+Adityapur, India	Grocery	Food
+Adoni, India	Entertainment	Bills
+Adoor, India	Bills	Fuel
+Afzalpur, India	Food	Fuel
+Agartala, India	Food	Grocery
+Agra, India	Grocery	Bills
+
+*/
