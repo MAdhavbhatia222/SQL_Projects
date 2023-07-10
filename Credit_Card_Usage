@@ -8,17 +8,19 @@ SELECT top 10 * FROM CreditCardIndia;
 /*
 Result :
 
-transaction_id	city	transaction_date	card_type	xp_type	gender	amount
-0	Delhi, India	2014-10-29 00:00:00.000	Gold	Bills	F	82475
-1	Greater Mumbai, India	2014-08-22 00:00:00.000	Platinum	Bills	F	32555
-2	Bengaluru, India	2014-08-27 00:00:00.000	Silver	Bills	F	101738
-3	Greater Mumbai, India	2014-04-12 00:00:00.000	Signature	Bills	F	123424
-4	Bengaluru, India	2015-05-05 00:00:00.000	Gold	Bills	F	171574
-5	Delhi, India	2014-09-08 00:00:00.000	Silver	Bills	F	100036
-6	Delhi, India	2015-02-24 00:00:00.000	Gold	Bills	F	143250
-7	Greater Mumbai, India	2014-06-26 00:00:00.000	Platinum	Bills	F	150980
-8	Delhi, India	2014-03-28 00:00:00.000	Silver	Bills	F	192247
-9	Delhi, India	2014-09-01 00:00:00.000	Platinum	Bills	F	67932
+transaction_id |         city         |    transaction_date     | card_type | xp_type | gender | amount
+0              |   Delhi, India       | 2014-10-29 00:00:00.000 |   Gold    |  Bills  |   F    |  82475
+1              | Greater Mumbai, India| 2014-08-22 00:00:00.000 | Platinum |  Bills  |   F    |  32555
+2              | Bengaluru, India     | 2014-08-27 00:00:00.000 |  Silver   |  Bills  |   F    | 101738
+3              | Greater Mumbai, India| 2014-04-12 00:00:00.000 | Signature |  Bills  |   F    | 123424
+4              | Bengaluru, India     | 2015-05-05 00:00:00.000 |   Gold    |  Bills  |   F    | 171574
+5              |   Delhi, India       | 2014-09-08 00:00:00.000 |  Silver   |  Bills  |   F    | 100036
+6              |   Delhi, India       | 2015-02-24 00:00:00.000 |   Gold    |  Bills  |   F    | 143250
+7              | Greater Mumbai, India| 2014-06-26 00:00:00.000 | Platinum |  Bills  |   F    | 150980
+8              |   Delhi, India       | 2014-03-28 00:00:00.000 |  Silver   |  Bills  |   F    | 192247
+9              |   Delhi, India       | 2014-09-01 00:00:00.000 | Platinum |  Bills  |   F    |  67932
+
+
 */
 
 /* It seems the city name contains the country name as well. Now, We can explore the type of card, type of expenditure, and gender. */
@@ -65,9 +67,9 @@ GROUP BY gender;
 /*
 Result:
 
-gender	transaction_count
-F	13680
-M	12372
+gender | transaction_count
+F      |      13680
+M      |      12372
 */
 
 /* There are more transactions done by Females than by Males. */
@@ -91,12 +93,12 @@ Order BY SUM(amount) DESC
 /*
 Result:
 
-city	spend	spends_share
-Greater Mumbai, India	576751476	14.1539892114749
-Bengaluru, India	572326739	14.0454022682807
-Ahmedabad, India	567794310	13.9341724685536
-Delhi, India	556929212	13.6675333938863
-Kolkata, India	115466943	2.83366048204789
+city                  |     spend     |   spends_share
+Greater Mumbai, India |  576751476    |  14.1539892114749
+Bengaluru, India      |  572326739    |  14.0454022682807
+Ahmedabad, India      |  567794310    |  13.9341724685536
+Delhi, India          |  556929212    |  13.6675333938863
+Kolkata, India        |  115466943    |   2.83366048204789
 */
 
 /* Top 5 cities are Mumbai, Bengaluru, Ahmedabad, Delhi, and Kolkata. */
@@ -121,11 +123,11 @@ WHERE rn=1
 /*
 Result:
 
-card_type	spend_year	spend_month	spend_amount	rn
-Gold	2015	1	55455064	1
-Platinum	2014	8	57936507	1
-Signature	2013	12	58799522	1
-Silver	2015	3	59723549	1
+card_type | spend_year | spend_month | spend_amount | rn
+Gold      |    2015    |      1      |   55455064   |  1
+Platinum  |    2014    |      8      |   57936507   |  1
+Signature |    2013    |     12      |   58799522   |  1
+Silver    |    2015    |      3      |   59723549   |  1
 
 */
 
@@ -158,11 +160,11 @@ WHERE rn=1
 /*
 Result:
 
-transaction_id	transaction_date	card_type	city	xp_type	gender	amount	card_type_agg	rn
-1521	2013-10-04 00:00:00.000	Gold	Delhi, India	Food	M	281924	1272624	1
-190	2013-10-05 00:00:00.000	Platinum	Ahmedabad, India	Bills	F	612572	1537482	1
-72	2013-10-04 00:00:00.000	Signature	Delhi, India	Bills	F	550782	1285819	1
-7564	2013-10-04 00:00:00.000	Silver	Bengaluru, India	Food	F	205179	1115582	1
+transaction_id |   transaction_date      | card_type|        city       | xp_type | gender | amount | card_type_agg | rn
+     1521      | 2013-10-04 00:00:00.000 |   Gold   |   Delhi, India    |   Food  |   M    | 281924 |    1272624    |  1
+      190      | 2013-10-05 00:00:00.000 | Platinum | Ahmedabad, India  |  Bills  |   F    | 612572 |    1537482    |  1
+      72       | 2013-10-04 00:00:00.000 | Signature|   Delhi, India    |  Bills  |   F    | 550782 |    1285819    |  1
+     7564      | 2013-10-04 00:00:00.000 |  Silver  | Bengaluru, India  |   Food  |   F    | 205179 |    1115582    |  1
 
 */
 
@@ -184,8 +186,9 @@ ORDER BY (Gold_amount*1.0)/total_amount
 /*
 Result:
 
-city	gold_ratio
-Dhamtari, India	0.00332987647004875
+city               |    gold_ratio
+Dhamtari, India    | 0.00332987647004875
+
 
 */
 
@@ -216,14 +219,14 @@ GROUP BY city;
 /*
 Sample Result:
 
-city	lowest_exp_type	highest_exp_type
-Achalpur, India	Entertainment	Grocery
-Adilabad, India	Food	Bills
-Adityapur, India	Grocery	Food
-Adoni, India	Entertainment	Bills
-Adoor, India	Bills	Fuel
-Afzalpur, India	Food	Fuel
-Agartala, India	Food	Grocery
-Agra, India	Grocery	Bills
+city             | lowest_exp_type | highest_exp_type
+Achalpur, India  |  Entertainment  |      Grocery
+Adilabad, India  |      Food       |      Bills
+Adityapur, India |     Grocery     |      Food
+Adoni, India     |  Entertainment  |      Bills
+Adoor, India     |      Bills      |      Fuel
+Afzalpur, India  |      Food       |      Fuel
+Agartala, India  |      Food       |     Grocery
+Agra, India      |     Grocery     |      Bills
 
 */
