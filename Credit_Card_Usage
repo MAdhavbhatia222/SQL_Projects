@@ -1,0 +1,5 @@
+--Credit Card Data India - https://www.kaggle.com/datasets/thedevastator/analyzing-credit-card-spending-habits-in-india
+--Tables: CreditCardIndia
+
+--Explore Top 10 rows from Credit Card Table
+SELECT top 10 * FROM CreditCardIndia;
