@@ -2,6 +2,7 @@
 --Tables: CreditCardIndia
 
 --Explore Top 10 rows from Credit Card Table
+
 SELECT top 10 * FROM CreditCardIndia;
 
 /*
@@ -72,7 +73,7 @@ M	12372
 /* There are more transactions done by Females than by Males. */
 
 
---Let us see top 5 cities with highest spends and their percentage contribution of total credit card spends 
+--Let us see the top 5 cities with the highest spends and their percentage contribution of total credit card spends 
 
 WITH Overall_Spend AS ( 
 SELECT SUM(amount) AS overall_spend 
@@ -99,5 +100,35 @@ Kolkata, India	115466943	2.83366048204789
 */
 
 /* Top 5 cities are Mumbai, Bengaluru, Ahmedabad, Delhi, and Kolkata. */
+
+--For each card type Let's find: 1. Highest spend month and 2. Amount spent in that month 
+
+WITH spend_month_data AS (
+SELECT card_type,datepart(YEAR,date) AS spend_year,datepart(MONTH,date) AS spend_month,
+SUM(amount) AS spend_amount
+FROM CreditCardIndia
+GROUP BY card_type,datepart(YEAR,date),datepart(MONTH,date)
+),
+Rank_Card_Type AS (
+SELECT *,
+row_number() OVER ( PARTITION BY card_type ORDER BY spend_amount DESC) AS rn
+FROM spend_month_data
+)
+SELECT * FROM Rank_Card_Type
+WHERE rn=1
+;
+
+/*
+Result:
+
+card_type	spend_year	spend_month	spend_amount	rn
+Gold	2015	1	55455064	1
+Platinum	2014	8	57936507	1
+Signature	2013	12	58799522	1
+Silver	2015	3	59723549	1
+
+*/
+
+
 
 
