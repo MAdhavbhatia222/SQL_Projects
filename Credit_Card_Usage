@@ -3,3 +3,101 @@
 
 --Explore Top 10 rows from Credit Card Table
 SELECT top 10 * FROM CreditCardIndia;
+
+/*
+Result :
+
+index	city	date	card_type	xp_type	gender	amount
+0	Delhi, India	2014-10-29 00:00:00.000	Gold	Bills	F	82475
+1	Greater Mumbai, India	2014-08-22 00:00:00.000	Platinum	Bills	F	32555
+2	Bengaluru, India	2014-08-27 00:00:00.000	Silver	Bills	F	101738
+3	Greater Mumbai, India	2014-04-12 00:00:00.000	Signature	Bills	F	123424
+4	Bengaluru, India	2015-05-05 00:00:00.000	Gold	Bills	F	171574
+5	Delhi, India	2014-09-08 00:00:00.000	Silver	Bills	F	100036
+6	Delhi, India	2015-02-24 00:00:00.000	Gold	Bills	F	143250
+7	Greater Mumbai, India	2014-06-26 00:00:00.000	Platinum	Bills	F	150980
+8	Delhi, India	2014-03-28 00:00:00.000	Silver	Bills	F	192247
+9	Delhi, India	2014-09-01 00:00:00.000	Platinum	Bills	F	67932
+*/
+
+/* It seems the city name contains the country name as well. Now, We can explore the type of card, type of expenditure, and gender. */
+
+
+--Let's see the type of cards
+
+SELECT DISTINCT card_type FROM CreditCardIndia;
+
+/*
+Result:
+
+card_type
+Silver
+Signature
+Gold
+Platinum
+*/
+
+
+--Let's see the type of expenditure
+
+SELECT DISTINCT xp_type FROM CreditCardIndia;
+
+/*
+Result:
+
+xp_type
+Entertainment
+Food
+Bills
+Fuel
+Travel
+Grocery
+*/
+
+
+--Lets see gender distribution based on number of transactions
+
+SELECT gender,COUNT(gender) AS  transaction_count
+FROM CreditCardIndia 
+GROUP BY gender;
+
+/*
+Result:
+
+gender	transaction_count
+F	13680
+M	12372
+*/
+
+/* There are more transactions done by Females than by Males. */
+
+
+--Let us see top 5 cities with highest spends and their percentage contribution of total credit card spends 
+
+WITH Overall_Spend AS ( 
+SELECT SUM(amount) AS overall_spend 
+FROM CreditCardIndia
+)
+SELECT top 5 city,
+SUM(amount) as spend,
+SUM(amount) /(SELECT * FROM Overall_Spend) AS spends_share
+FROM CreditCardIndia
+GROUP BY city
+Order BY SUM(amount) DESC
+;
+
+
+/*
+Result:
+
+city	spend	spends_share
+Greater Mumbai, India	576751476	14.1539892114749
+Bengaluru, India	572326739	14.0454022682807
+Ahmedabad, India	567794310	13.9341724685536
+Delhi, India	556929212	13.6675333938863
+Kolkata, India	115466943	2.83366048204789
+*/
+
+/* Top 5 cities are Mumbai, Bengaluru, Ahmedabad, Delhi, and Kolkata. */
+
+
