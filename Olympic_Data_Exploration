@@ -1,0 +1,194 @@
+/* This is Olympic data set.
+The data contains 120 years of Olympic history. There are 2 datasets 
+1- athletes: it has information about all the players who participated in olympics
+2- athlete_events: it has information about all the events over the year. (athlete id refers to the id column in the athlete table)
+*/
+
+-- Let's Look at the top 10 rows of the two tables and examine the columns
+SELECT top 10 * FROM athletes;
+/*
+Result : 
+
+
+id    # name                            # sex   # height    # weight    # team
+------- # ----------------------------- # ---- # -------- # -------- # ----
+1        # A Dijiang                      # M    # 180       # 80        # China
+2        # A Lamusi                       # M    # 170       # 60        # China
+3        # Gunnar Nielsen Aaby            # M    # NULL     # NULL     # Denmark
+4        # Edgar Lindenau Aabye           # M    # NULL     # NULL     # Denmark/Sweden
+5        # Christine Jacoba Aaftink       # F    # 185       # 82        # Netherlands
+6        # Per Knut Aaland                # M    # 188       # 75        # United States
+7        # John Aalberg                    # M    # 183       # 72        # United States
+8        # Cornelia "Cor" Aalten (-Strannood) # F    # 168       # NULL     # Netherlands
+9        # Antti Sami Aalto                # M    # 186       # 96        # Finland
+10       # Einar Ferdinand "Einari" Aalto  # M    # NULL     # NULL     # Finland
+
+*/
+
+SELECT top 10 * FROM athlete_events;
+/*
+Result:
+
+athlete_id   # games   # year   # season   # city   # sport   # event   # medal
+-------        # ------  # ------ # ------  # ------ # ------  # ------  # ------
+28292          # 1968 Summer   # 1968   # Summer   # Mexico City   # Boxing   # Boxing Men's Flyweight   # NA
+28293          # 1956 Summer   # 1956   # Summer   # Melbourne   # Boxing   # Boxing Men's Light-Heavyweight   # NA
+28294          # 1948 Summer   # 1948   # Summer   # London   # Basketball   # Basketball Men's Basketball   # NA
+28295          # 2012 Summer   # 2012   # Summer   # London   # Equestrianism   # Equestrianism Mixed Jumping, Individual   # NA
+28296          # 2004 Summer   # 2004   # Summer   # Athina   # Swimming   # Swimming Men's 50 metres Freestyle   # NA
+28297          # 2004 Summer   # 2004   # Summer   # Athina   # Athletics   # Athletics Women's 4 x 100 metres Relay   # NA
+28297          # 2008 Summer   # 2008   # Summer   # Beijing   # Athletics   # Athletics Women's 200 metres   # NA
+28297          # 2008 Summer   # 2008   # Summer   # Beijing   # Athletics   # Athletics Women's 4 x 400 metres Relay   # NA
+28298          # 1976 Summer   # 1976   # Summer   # Montreal   # Gymnastics   # Gymnastics Women's Individual All-Around   # NA
+28298          # 1976 Summer   # 1976   # Summer   # Montreal   # Gymnastics   # Gymnastics Women's Floor Exercise   # NA
+*/
+
+--Let's find the teams with the maximum number of gold medals over the years
+
+SELECT A.team,
+COUNT(medal) AS gold_medals
+FROM athletes AS A
+JOIN athlete_events AS AE
+ON A.id=AE.athlete_id
+WHERE AE.medal='Gold'
+GROUP BY A.team
+ORDER BY COUNT(medal) DESC;
+
+/*
+Sample Result:
+
+team   # gold_medals
+------- # --------
+United States   # 2,515
+Soviet Union    # 1,110
+Germany         # 636
+Italy            # 536
+Great Britain    # 531
+France           # 452
+Sweden           # 450
+Hungary          # 429
+Canada           # 422
+East Germany     # 409
+
+*/
+
+--Let's try to find Each team's total silver medals and the year in which they won a maximum silver medal
+
+WITH TEAM_YEAR_AGG AS (
+SELECT A.team, AE.year,
+COUNT(medal) AS silver_medals
+FROM athletes AS A
+JOIN athlete_events AS AE
+ON A.id=AE.athlete_id
+WHERE AE.medal='Silver'
+GROUP BY A.team, AE.year
+),
+ROW_AGG_DATA AS (
+SELECT team,
+year,
+silver_medals,
+row_number() OVER (partition by team, year ORDER BY silver_medals DESC) AS rnk
+FROM TEAM_YEAR_AGG
+)
+SELECT team,
+SUM(silver_medals) AS total_silver_medals,
+max(CASE WHEN rnk=1 THEN year ELSE NULL END) AS year_max_silver_medal
+FROM ROW_AGG_DATA
+GROUP BY team
+ORDER BY total_silver_medals DESC
+;
+
+/*
+Sample Result:
+
+team         # total_silver_medals   # year_max_silver_medal
+-------        # --------           # --------
+United States  # 1,546                # 2016
+Soviet Union   # 766                 # 2008
+Germany        # 603                 # 2016
+Great Britain   # 591                 # 2016
+France         # 524                 # 2016
+Italy          # 507                 # 2016
+Sweden         # 479                 # 2016
+Australia      # 453                 # 2016
+Canada         # 407                 # 2016
+China          # 332                 # 2016
+
+*/
+
+--Let's find which player has won the maximum number of gold medals among the players 
+--which have won the only gold medal (never won silver or bronze) over the years
+
+SELECT A.id, A.name,
+COUNT(medal) AS gold_medals
+FROM athletes AS A
+JOIN athlete_events AS AE
+ON A.id=AE.athlete_id
+WHERE AE.medal='Gold'
+AND A.id not in (
+SELECT athlete_id 
+FROM athlete_events 
+WHERE medal IN ('Silver', 'Bronze')
+)
+GROUP BY A.id, A.name
+ORDER BY COUNT(medal) DESC
+;
+
+/*
+Sample Result:
+
+id    # name   # gold_medals
+------- # -------- # --------
+33557  # Raymond Clarence "Ray" Ewry  # 10
+13029  # Usain St. Leo Bolt  # 8
+57699  # Rudolf Krpti  # 6
+124563 # Amy Deloris Van Dyken (-Rouen)  # 6
+90020  # Kristin Otto  # 6
+111696 # Lidiya Pavlovna Skoblikova (-Polozkova)  # 6
+84026  # Nedo Nadi  # 6
+52471  # Nataliya Sergeyevna Ishchenko  # 5
+35572  # Morris "Bud" Fisher  # 5
+25762  # Anastasiya Semyonovna Davydova  # 5
+
+*/
+
+--Let's Find in each year which player has won the maximum gold medal and no of golds won in that year. 
+--In case of a tie we shall print comma-separated player names.
+
+WITH ATHLETE_GLD AS (
+SELECT A.id, A.name,AE.year,
+COUNT(medal) AS gold_medals
+FROM athletes AS A
+JOIN athlete_events AS AE
+ON A.id=AE.athlete_id
+WHERE AE.medal='Gold'
+GROUP BY A.id, A.name,AE.year
+),
+RNK_DATA_GLD_WIN AS (SELECT  name, year,gold_medals,
+RANK() OVER (partition by year ORDER BY gold_medals DESC) AS rnk
+FROM ATHLETE_GLD
+GROUP BY name, year,gold_medals
+)
+SELECT RD.year,RD.gold_medals,STRING_AGG(RD.name,',') AS players
+FROM RNK_DATA_GLD_WIN AS RD
+WHERE rnk=1
+GROUP BY year,gold_medals
+ORDER BY year DESC;
+
+/*
+Sample Result:
+
+year    # gold_medals   # players
+-------  # --------   # --------
+2016     # 5             # Michael Fred Phelps, II
+2014     # 3             # Darya Vladimirovna Domracheva, Marit Bjørgen, Viktor An
+2012     # 4             # Melissa Jeanette "Missy" Franklin, Michael Fred Phelps, II
+2010     # 3             # Marit Bjørgen, Wang Meng
+2008     # 8             # Michael Fred Phelps, II
+2006     # 3             # Jin Seon-Yu, Michael Greis, Viktor An
+2004     # 6             # Michael Fred Phelps, II
+2002     # 4             # Ole Einar Bjørndalen
+2000     # 3             # Ian James Thorpe, Inge de Bruijn, Jennifer Elisabeth "Jenny" Thompson (-Cumpelik), Lenny Krayzelburg, Leontine Martha Henrica Petronella "Leontien" Zijlaard-van Moorsel
+1998     # 3             # Larisa Yevgenyevna Lazutina (Ptitsyna-)
+
+*/
